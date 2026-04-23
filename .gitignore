@@ -1,0 +1,60 @@
+# Build output
+/build/
+/dist/
+/out/
+
+# ESP-IDF generated files
+sdkconfig
+sdkconfig.old
+dependencies.lock
+
+# CMake / Ninja
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+build.ninja
+.ninja_deps
+.ninja_log
+
+# Compilation database
+compile_commands.json
+
+# ESP-IDF / component manager
+managed_components/
+
+# Flash / monitor logs
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# VS Code
+.vscode/
+
+# CLion / JetBrains
+.idea/
+
+# Eclipse
+.project
+.cproject
+.settings/
+
+# Misc editors
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local screenshots / temporary exported assets
+*.tmp
