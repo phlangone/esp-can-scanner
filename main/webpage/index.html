@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CAN Tester</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-dot"></span>
+            <div>
+                <h1>CAN Tester</h1>
+                <p>Interface web para transmissão, monitoração e diagnóstico do barramento</p>
+            </div>
+        </div>
+
+        <div class="status-cluster">
+            <div class="pill-box">
+                <span class="status-label">ESP32</span>
+                <span id="connectionStatus" class="status online">Conectado</span>
+            </div>
+            <div class="pill-box">
+                <span class="status-label">CAN</span>
+                <span id="canStateBadge" class="state-badge state-stopped">Stopped</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="page">
+        <section class="card">
+            <div class="card-header">
+                <span class="badge badge-tx">TX</span>
+                <h2>Transmitir frame</h2>
+            </div>
+
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="canId">CAN ID (hex)</label>
+                    <input id="canId" type="text" maxlength="8" placeholder="Ex.: 123 ou 18FF50E5" />
+                    <small id="idHint" class="field-hint">Frame padrão: até 3 dígitos hex.</small>
+                </div>
+
+                <div class="inline-grid inline-grid-2">
+                    <div class="form-group">
+                        <label for="frameFormat">Formato</label>
+                        <select id="frameFormat">
+                            <option value="standard">Standard (11 bits)</option>
+                            <option value="extended">Extended (29 bits)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="frameType">Tipo</label>
+                        <select id="frameType">
+                            <option value="data">Data Frame</option>
+                            <option value="remote">Remote Frame (RTR)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="dlc">DLC</label>
+                    <select id="dlc"></select>
+                </div>
+
+                <div class="form-group">
+                    <label>Bytes de dados</label>
+                    <div id="dataGrid" class="data-grid"></div>
+                    <small class="field-hint">Campos desabilitados não serão enviados.</small>
+                </div>
+
+                <div class="preview-box">
+                    <span class="preview-label">Resumo do frame</span>
+                    <pre id="txPreview">ID: --- | DLC: 0 | DATA: --</pre>
+                </div>
+
+                <div class="actions">
+                    <button id="clearTxBtn" class="btn btn-secondary" type="button">Limpar campos</button>
+                    <button id="sendBtn" class="btn btn-primary" type="button">Enviar</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="side-column">
+            <section class="card">
+                <div class="card-header">
+                    <span class="badge badge-state">CAN</span>
+                    <h2>Estado do barramento</h2>
+                </div>
+
+                <div class="card-body">
+                    <div class="state-panel">
+                        <div class="state-main">
+                            <span class="state-title">Estado atual</span>
+                            <span id="canStateText" class="state-text">Stopped</span>
+                        </div>
+
+                        <div class="state-help">
+                            <p id="canStateDescription">Controlador parado ou ainda não inicializado.</p>
+                        </div>
+
+                        <div class="state-legend">
+                            <span class="legend-pill legend-running">Running</span>
+                            <span class="legend-pill legend-stopped">Stopped</span>
+                            <span class="legend-pill legend-busoff">Bus-Off</span>
+                            <span class="legend-pill legend-recovering">Recovering</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <span class="badge badge-cfg">CFG</span>
+                    <h2>Configurações</h2>
+                </div>
+
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="baudrate">Baudrate</label>
+                        <select id="baudrate">
+                            <option value="25000">25 kbps</option>
+                            <option value="50000">50 kbps</option>
+                            <option value="100000">100 kbps</option>
+                            <option value="125000" selected>125 kbps</option>
+                            <option value="250000">250 kbps</option>
+                            <option value="500000">500 kbps</option>
+                            <option value="800000">800 kbps</option>
+                            <option value="1000000">1 Mbps</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="operationMode">Modo de operação</label>
+                        <select id="operationMode">
+                            <option value="normal">Normal</option>
+                            <option value="listen-only">Listen-Only</option>
+                            <option value="no-ack">No-ACK</option>
+                        </select>
+                        <small class="field-hint">Use listen-only para monitorar sem interferir no barramento.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filterId">Filtro ID (hex)</label>
+                        <input id="filterId" type="text" maxlength="8" placeholder="Opcional" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="maskId">Máscara ID (hex)</label>
+                        <input id="maskId" type="text" maxlength="8" placeholder="Opcional" />
+                    </div>
+
+                    <button id="applyConfigBtn" class="btn btn-info" type="button">Aplicar configuração</button>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <span class="badge badge-stats">STAT</span>
+                    <h2>Resumo estatístico</h2>
+                </div>
+
+                <div class="card-body stats-grid">
+                    <div class="stat-box">
+                        <span class="stat-value" id="statTx">0</span>
+                        <span class="stat-label">Frames TX</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="statRx">0</span>
+                        <span class="stat-label">Frames RX</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="statErr">0</span>
+                        <span class="stat-label">Erros</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="statShown">0</span>
+                        <span class="stat-label">Visíveis no log</span>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section class="card card-full">
+            <div class="card-header">
+                <span class="badge badge-rx">RX</span>
+                <h2>Monitor do barramento</h2>
+            </div>
+
+            <div class="card-body rx-layout">
+                <div class="toolbar">
+                    <input id="logFilter" type="text" placeholder="Filtrar por ID... ex.: 123" />
+                    <label class="checkbox-inline">
+                        <input id="autoScroll" type="checkbox" checked />
+                        Auto-scroll
+                    </label>
+                    <button id="clearLogBtn" class="btn btn-secondary btn-inline" type="button">Limpar log</button>
+                </div>
+
+                <div class="rx-panels">
+                    <div class="last-frame-box">
+                        <div class="section-title">Último frame recebido</div>
+                        <div id="lastFrame" class="last-frame empty">
+                            Aguardando frames do barramento...
+                        </div>
+                    </div>
+
+                    <div class="log-box">
+                        <div class="section-title">Log RX</div>
+                        <div id="rxLog" class="rx-log">
+                            <div class="log-empty">Nenhum frame recebido ainda.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
