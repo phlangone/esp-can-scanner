@@ -182,8 +182,3 @@ After connecting to the access point, open the device IP in your browser.
 - timestamp formatting improvements
 - bus load and error statistics on the UI
 - filter presets and advanced mask helpers
-
-## License
-MIT
-
-Add your preferred license here.
